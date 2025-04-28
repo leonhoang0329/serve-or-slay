@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serve or Slay (Text Edition)</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #121212;
+            color: #eee;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 800px;
+            height: 600px;
+            background-color: #1e1e1e;
+            border: 4px solid #333;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #bar-counter {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 180px;
+            background-color: #362412;
+            border-top: 4px solid #5a3b1a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #drink-making-area {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            height: 140px;
+        }
+
+        .ingredient-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+        }
+
+        .section-title {
+            margin-bottom: 5px;
+            color: #edc988;
+            font-weight: bold;
+        }
+
+        .ingredient-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ingredient-btn {
+            background-color: #444;
+            color: #fff;
+            border: 2px solid #666;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-bottom: 3px;
+            width: 130px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .ingredient-btn:hover {
+            transform: scale(1.05);
+            background-color: #555;
+        }
+
+        .ingredient-btn.selected {
+            background-color: #865116;
+            border-color: #c78232;
+            color: #ffe0b2;
+        }
+
+        .ingredient-btn.rum {
+            background-color: #b5651d;
+        }
+
+        .ingredient-btn.gin {
+            background-color: #424242;
+        }
+
+        .ingredient-btn.vodka {
+            background-color: #7a90a0;
+        }
+
+        .ingredient-btn.curacao {
+            background-color: #2c5282;
+        }
+
+        .ingredient-btn.lime {
+            background-color: #4a752c;
+        }
+
+        .ingredient-btn.hemlock {
+            background-color: #2e4d35;
+        }
+
+        .ingredient-btn.passion {
+            background-color: #ff5733;
+        }
+
+        .ingredient-btn.soda {
+            background-color: #4c6b8a;
+        }
+
+        .ingredient-btn.tonic {
+            background-color: #616161;
+        }
+
+        .ingredient-btn.cola {
+            background-color: #3a2b2b;
+        }
+
+        #selected-ingredients {
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #edc988;
+            font-size: 14px;
+        }
+
+        #patron-area {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: calc(100% - 180px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(to bottom, #0a0a0a, #1a1a1a);
+        }
+
+        #patron {
+            width: 100px;
+            height: 200px;
+            position: relative;
+            transition: all 0.5s;
+        }
+
+        .patron-body {
+            width: 100%;
+            height: 100%;
+            background-color: #444;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        .patron-head {
+            width: 60px;
+            height: 60px;
+            background-color: #ddbea9;
+            border-radius: 50%;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .patron-eyes {
+            display: flex;
+            justify-content: space-around;
+            width: 40px;
+            margin-top: 20px;
+        }
+
+        .patron-eye {
+            width: 12px;
+            height: 12px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        .patron-torso {
+            width: 80px;
+            height: 100px;
+            background-color: #567;
+            margin-top: 10px;
+        }
+
+        #status-bar {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 5px;
+            font-size: 18px;
+        }
+
+        #patrons-served {
+            color: #8bc34a;
+        }
+
+        #game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 24px;
+            display: none;
+            z-index: 100;
+        }
+
+        #restart-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4a752c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #restart-btn:hover {
+            background-color: #5c8a37;
+        }
+
+        .drink-glass {
+            position: absolute;
+            bottom: 190px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 10px 10px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            display: none;
+        }
+
+        .drink-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            transition: height 0.5s;
+            border-radius: 0 0 8px 8px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #instructions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            max-width: 200px;
+            z-index: 10;
+            animation: fadeIn 0.5s;
+        }
+
+        #instructions h3 {
+            margin-top: 0;
+            color: #edc988;
+        }
+
+        #instructions p {
+            margin: 5px 0;
+        }
+
+        .drink-recipe {
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        .drink-recipe div {
+            margin-bottom: 5px;
+        }
+
+        .human-drink {
+            color: #8bc34a;
+        }
+
+        .monster-drink {
+            color: #ff5252;
+        }
+
+        #speech-bubble {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+            max-width: 250px;
+            text-align: center;
+        }
+
+        #speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent transparent;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="instructions">
+            <h3>Serve or Slay</h3>
+            <p>Serve 20 patrons correctly in a row to win!</p>
+            <p>Monsters look like humans but make typos/misspell words when ordering. Always serve them Night-Ender Poison regardless of what they order.</p>
+            
+            <div class="drink-recipe">
+                <div class="human-drink">
+                    <strong>Happy Highball (Human)</strong>
+                    <br>Rum + Lime Syrup + Soda Water
+                </div>
+                <div class="human-drink">
+                    <strong>Sex on the Beach (Human)</strong>
+                    <br>Curacao + Passionfruit Juice + Soda Water
+                </div>
+                <div class="human-drink">
+                    <strong>Chill After Work (Human)</strong>
+                    <br>Vodka + Hemlock Syrup + Tonic
+                </div>
+                <div class="monster-drink">
+                    <strong>Night-Ender Poison (Monsters)</strong>
+                    <br>Graveyard Gin + Hemlock Syrup + Night Cola
+                </div>
+            </div>
+        </div>
+
+        <div id="status-bar">
+            <div id="patrons-served">Patrons: 0/20</div>
+        </div>
+
+        <div id="patron-area">
+            <div id="speech-bubble"></div>
+            <div id="patron" style="opacity: 0;">
+                <div class="patron-body">
+                    <div class="patron-head">
+                        <div class="patron-eyes">
+                            <div class="patron-eye"></div>
+                            <div class="patron-eye"></div>
+                        </div>
+                    </div>
+                    <div class="patron-torso"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="drink-glass">
+            <div class="drink-liquid"></div>
+        </div>
+
+        <div id="bar-counter">
+            <div id="drink-making-area">
+                <div class="ingredient-section">
+                    <div class="section-title">Alcohol</div>
+                    <div class="ingredient-buttons">
+                        <button class="ingredient-btn rum" data-type="alcohol" data-value="rum">Rum</button>
+                        <button class="ingredient-btn gin" data-type="alcohol" data-value="gin">Graveyard Gin</button>
+                        <button class="ingredient-btn vodka" data-type="alcohol" data-value="vodka">Vodka</button>
+                        <button class="ingredient-btn curacao" data-type="alcohol" data-value="curacao">Curacao</button>
+                    </div>
+                </div>
+                <div class="ingredient-section">
+                    <div class="section-title">Syrup/Juice</div>
+                    <div class="ingredient-buttons">
+                        <button class="ingredient-btn lime" data-type="syrup" data-value="lime">Lime Syrup</button>
+                        <button class="ingredient-btn hemlock" data-type="syrup" data-value="hemlock">Hemlock Syrup</button>
+                        <button class="ingredient-btn passion" data-type="syrup" data-value="passion">Passionfruit Juice</button>
+                    </div>
+                </div>
+                <div class="ingredient-section">
+                    <div class="section-title">Soda</div>
+                    <div class="ingredient-buttons">
+                        <button class="ingredient-btn soda" data-type="soda" data-value="soda">Soda Water</button>
+                        <button class="ingredient-btn tonic" data-type="soda" data-value="tonic">Tonic</button>
+                        <button class="ingredient-btn cola" data-type="soda" data-value="cola">Night Cola</button>
+                    </div>
+                </div>
+            </div>
+            <div id="selected-ingredients">Select ingredients to mix a drink</div>
+        </div>
+
+        <div id="game-message">
+            <div id="message-text"></div>
+            <button id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Game state
+            const gameState = {
+                patronsServed: 0,
+                selectedIngredients: {
+                    alcohol: null,
+                    syrup: null,
+                    soda: null
+                },
+                currentPatron: null,
+                gameActive: true
+            };
+
+            // DOM elements
+            const patronArea = document.getElementById("patron-area");
+            const patronElement = document.getElementById("patron");
+            const patronsServedDisplay = document.getElementById("patrons-served");
+            const selectedIngredientsDisplay = document.getElementById("selected-ingredients");
+            const gameMessage = document.getElementById("game-message");
+            const messageText = document.getElementById("message-text");
+            const restartBtn = document.getElementById("restart-btn");
+            const drinkGlass = document.querySelector(".drink-glass");
+            const drinkLiquid = document.querySelector(".drink-liquid");
+            const speechBubble = document.getElementById("speech-bubble");
+
+            // Drink recipes
+            const drinks = {
+                happyHighball: {
+                    alcohol: "rum",
+                    syrup: "lime",
+                    soda: "soda",
+                    name: "Happy Highball",
+                    color: "#a8e6cf",
+                    forMonster: false
+                },
+                sexOnTheBeach: {
+                    alcohol: "curacao",
+                    syrup: "passion",
+                    soda: "soda",
+                    name: "Sex on the Beach",
+                    color: "#ff9a76",
+                    forMonster: false
+                },
+                chillAfterWork: {
+                    alcohol: "vodka",
+                    syrup: "hemlock",
+                    soda: "tonic",
+                    name: "Chill After Work",
+                    color: "#c5d5cb",
+                    forMonster: false
+                },
+                nightEnderPoison: {
+                    alcohol: "gin",
+                    syrup: "hemlock",
+                    soda: "cola",
+                    name: "Night-Ender Poison",
+                    color: "#540b0e",
+                    forMonster: true
+                }
+            };
+
+            // Patron orders with correct spelling (for humans)
+            const humanOrders = [
+                "I'd like a Happy Highball, please!",
+                "Can I get a Sex on the Beach?",
+                "I've had a long day. A Chill After Work would be nice.",
+                "One Happy Highball, bartender!",
+                "Sex on the Beach sounds perfect right now.",
+                "Make me a Chill After Work, would you?"
+            ];
+
+            // Monster orders with typos/misspellings
+            const monsterOrders = [
+                "I'd like a Hapy Highbal, please!",
+                "Can I get a Seks on the Beech?",
+                "I've had a lomg day. A Chill Affter Work would be nice.",
+                "One Hapy Highball, bartendur!",
+                "Sex on the Beech sounds purfect right now.",
+                "Make me a Chil After Werk, would you?",
+                "I'll have one Happy Highbal plz.",
+                "I woud like a Sex on the Beech.",
+                "I need a Chill Aftr Work, it's ben a day."
+            ];
+
+            // Function to determine if a drink name has a typo
+            function hasTypo(text) {
+                const typos = [
+                    "Hapy", "Highbal", "Seks", "Beech", "lomg", "Affter", "bartendur", 
+                    "purfect", "Chil", "Werk", "plz", "woud", "Aftr", "ben"
+                ];
+                
+                return typos.some(typo => text.includes(typo));
+            }
+
+            // Add click event listeners to ingredient buttons
+            document.querySelectorAll(".ingredient-btn").forEach(button => {
+                button.addEventListener("click", () => {
+                    if (!gameState.gameActive) return;
+                    
+                    const type = button.dataset.type;
+                    const value = button.dataset.value;
+                    
+                    // Remove selected class from other buttons of same type
+                    document.querySelectorAll(`.ingredient-btn[data-type="${type}"]`).forEach(btn => {
+                        btn.classList.remove("selected");
+                    });
+                    
+                    // Add selected class to this button
+                    button.classList.add("selected");
+                    
+                    // Update game state
+                    gameState.selectedIngredients[type] = value;
+                    
+                    // Update display
+                    updateSelectedIngredientsDisplay();
+                    
+                    // Check if all ingredients are selected
+                    if (gameState.selectedIngredients.alcohol && 
+                        gameState.selectedIngredients.syrup && 
+                        gameState.selectedIngredients.soda) {
+                        serveDrink();
+                    }
+                });
+            });
+
+            // Restart button
+            restartBtn.addEventListener("click", () => {
+                resetGame();
+            });
+
+            // Initialize game
+            function initGame() {
+                gameState.patronsServed = 0;
+                gameState.gameActive = true;
+                updatePatronsServedDisplay();
+                clearSelectedIngredients();
+                spawnNewPatron();
+            }
+
+            // Reset game
+            function resetGame() {
+                gameMessage.style.display = "none";
+                initGame();
+            }
+
+            // Update patrons served display
+            function updatePatronsServedDisplay() {
+                patronsServedDisplay.textContent = `Patrons: ${gameState.patronsServed}/20`;
+            }
+
+            // Clear selected ingredients
+            function clearSelectedIngredients() {
+                gameState.selectedIngredients = {
+                    alcohol: null,
+                    syrup: null,
+                    soda: null
+                };
+                
+                document.querySelectorAll(".ingredient-btn").forEach(btn => {
+                    btn.classList.remove("selected");
+                });
+                
+                updateSelectedIngredientsDisplay();
+                
+                // Hide drink glass
+                drinkGlass.style.display = "none";
+                drinkLiquid.style.height = "0";
+            }
+
+            // Update selected ingredients display
+            function updateSelectedIngredientsDisplay() {
+                const { alcohol, syrup, soda } = gameState.selectedIngredients;
+                
+                let displayText = "Select ingredients to mix a drink";
+                const selectedCount = Object.values(gameState.selectedIngredients).filter(v => v).length;
+                
+                if (selectedCount > 0) {
+                    displayText = "";
+                    if (alcohol) {
+                        let alcoholName = "";
+                        switch(alcohol) {
+                            case "rum": alcoholName = "Rum"; break;
+                            case "gin": alcoholName = "Graveyard Gin"; break;
+                            case "vodka": alcoholName = "Vodka"; break;
+                            case "curacao": alcoholName = "Curacao"; break;
+                        }
+                        displayText += alcoholName;
+                    }
+                    
+                    if (syrup) {
+                        if (displayText) displayText += " + ";
+                        let syrupName = "";
+                        switch(syrup) {
+                            case "lime": syrupName = "Lime Syrup"; break;
+                            case "hemlock": syrupName = "Hemlock Syrup"; break;
+                            case "passion": syrupName = "Passionfruit Juice"; break;
+                        }
+                        displayText += syrupName;
+                    }
+                    
+                    if (soda) {
+                        if (displayText) displayText += " + ";
+                        let sodaName = "";
+                        switch(soda) {
+                            case "soda": sodaName = "Soda Water"; break;
+                            case "tonic": sodaName = "Tonic"; break;
+                            case "cola": sodaName = "Night Cola"; break;
+                        }
+                        displayText += sodaName;
+                    }
+                }
+                
+                selectedIngredientsDisplay.textContent = displayText;
+                
+                // Show drink glass if at least one ingredient is selected
+                if (selectedCount > 0) {
+                    drinkGlass.style.display = "block";
+                    drinkLiquid.style.height = `${selectedCount * 20}%`;
+                    
+                    // Set color based on ingredients
+                    let color = "rgba(255, 255, 255, 0.5)";
+                    
+                    // Check if it matches any drink exactly
+                    for (const drinkKey in drinks) {
+                        const drink = drinks[drinkKey];
+                        if (alcohol === drink.alcohol && syrup === drink.syrup && soda === drink.soda) {
+                            color = drink.color;
+                            break;
+                        }
+                    }
+                    
+                    if (color === "rgba(255, 255, 255, 0.5)") {
+                        // Mix colors based on selections
+                        if (alcohol === "rum") color = "rgba(184, 134, 11, 0.5)";
+                        if (alcohol === "gin") color = "rgba(50, 50, 50, 0.5)";
+                        if (alcohol === "vodka") color = "rgba(200, 200, 200, 0.5)";
+                        if (alcohol === "curacao") color = "rgba(0, 100, 255, 0.5)";
+                        
+                        if (syrup === "lime") color = "rgba(0, 255, 0, 0.3)";
+                        if (syrup === "hemlock") color = "rgba(0, 100, 0, 0.5)";
+                        if (syrup === "passion") color = "rgba(255, 140, 0, 0.5)";
+                        
+                        if (soda === "soda") color = "rgba(200, 200, 255, 0.3)";
+                        if (soda === "tonic") color = "rgba(220, 220, 220, 0.3)";
+                        if (soda === "cola") color = "rgba(60, 20, 20, 0.7)";
+                    }
+                    
+                    drinkLiquid.style.backgroundColor = color;
+                }
+            }
+
+            // Spawn a new patron
+            function spawnNewPatron() {
+                // Clear the previous patron
+                patronElement.style.opacity = "0";
+                speechBubble.style.opacity = "0";
+                
+                setTimeout(() => {
+                    // Decide if patron is monster (has typos) or human
+                    const isMonster = Math.random() < 0.5;
+                    
+                    // Choose a drink order
+                    const orderText = isMonster ? 
+                        monsterOrders[Math.floor(Math.random() * monsterOrders.length)] :
+                        humanOrders[Math.floor(Math.random() * humanOrders.length)];
+                        
+                    // Determine which drink they're asking for (ignoring typos)
+                    let requestedDrink = "";
+                    if (orderText.toLowerCase().includes("high") || orderText.toLowerCase().includes("ball")) {
+                        requestedDrink = "happyHighball";
+                    } else if (orderText.toLowerCase().includes("sex") || orderText.toLowerCase().includes("beach") || 
+                              orderText.toLowerCase().includes("seks") || orderText.toLowerCase().includes("beech")) {
+                        requestedDrink = "sexOnTheBeach";
+                    } else if (orderText.toLowerCase().includes("chill") || orderText.toLowerCase().includes("work") || 
+                              orderText.toLowerCase().includes("chil") || orderText.toLowerCase().includes("werk")) {
+                        requestedDrink = "chillAfterWork";
+                    }
+                    
+                    gameState.currentPatron = { 
+                        isMonster,
+                        requestedDrink 
+                    };
+                    
+                    // All patrons now look human
+                    patronElement.classList.remove("monster");
+                    
+                    // Show the patron
+                    patronElement.style.opacity = "1";
+                    
+                    // Show the speech bubble with order
+                    speechBubble.textContent = orderText;
+                    setTimeout(() => {
+                        speechBubble.style.opacity = "1";
+                    }, 500);
+                    
+                }, 500);
+            }
+
+            // Serve drink to current patron
+            function serveDrink() {
+                if (!gameState.currentPatron) return;
+                
+                const { alcohol, syrup, soda } = gameState.selectedIngredients;
+                
+                let isCorrectDrink = false;
+                
+                if (gameState.currentPatron.isMonster) {
+                    // Monsters always need Night-Ender Poison
+                    isCorrectDrink = alcohol === drinks.nightEnderPoison.alcohol && 
+                                    syrup === drinks.nightEnderPoison.syrup && 
+                                    soda === drinks.nightEnderPoison.soda;
+                } else {
+                    // Humans need the drink they asked for
+                    const requestedDrink = gameState.currentPatron.requestedDrink;
+                    if (requestedDrink && drinks[requestedDrink]) {
+                        isCorrectDrink = alcohol === drinks[requestedDrink].alcohol && 
+                                        syrup === drinks[requestedDrink].syrup && 
+                                        soda === drinks[requestedDrink].soda;
+                    }
+                }
+                
+                if (isCorrectDrink) {
+                    // Correct drink!
+                    gameState.patronsServed++;
+                    updatePatronsServedDisplay();
+                    
+                    if (gameState.patronsServed >= 20) {
+                        // Win the game!
+                        endGame(true);
+                    } else {
+                        // Next patron
+                        clearSelectedIngredients();
+                        spawnNewPatron();
+                    }
+                } else {
+                    // Wrong drink!
+                    endGame(false);
+                }
+            }
+
+            // End the game
+            function endGame(isWin) {
+                gameState.gameActive = false;
+                
+                if (isWin) {
+                    messageText.textContent = "You won! All 20 patrons served correctly.";
+                    messageText.style.color = "#8bc34a";
+                } else {
+                    const patronType = gameState.currentPatron.isMonster ? "monster" : "human";
+                    let correctDrink = "";
+                    
+                    if (patronType === "monster") {
+                        correctDrink = "Night-Ender Poison";
+                    } else {
+                        // Find the human's requested drink
+                        const requestedDrink = gameState.currentPatron.requestedDrink;
+                        if (requestedDrink && drinks[requestedDrink]) {
+                            correctDrink = drinks[requestedDrink].name;
+                        }
+                    }
+                    
+                    messageText.textContent = `Game Over! You served the wrong drink to a ${patronType}. They needed a ${correctDrink}.`;
+                    messageText.style.color = "#ff5252";
+                }
+                
+                gameMessage.style.display = "block";
+            }
+
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>
